@@ -5,13 +5,26 @@ import Constants from 'expo-constants';
 import { StatusBar } from 'expo-status-bar';
 
 import { Text, View } from '../components/Themed';
-import PagerView, {PagerViewOnPageSelectedEvent} from 'react-native-pager-view';
+import PagerView, {PagerViewOnPageSelectedEvent, PagerViewOnPageScrollEvent} from 'react-native-pager-view';
 
 import { setOnboarding } from '../utilities/storage';
 
+const getOpacityIndicator = (pageState: number, page: number): number => {
+    if (pageState === page) {
+        return 1;
+    } else if (page < pageState && pageState < page + 1) {
+        return 1 - 0.7 * (pageState - page);
+    } else if (page > pageState && pageState > page - 1) {
+        return 1 - 0.7 * (page - pageState);
+    } else {
+        return 0.3;
+    }
+}
+
 export default function OnboardingScreen() {
     const [activePage, setActivePage] = React.useState(0);
-    const opacityAnimation = React.useRef(new Animated.Value(1)).current;
+    const [pageState, setPageState] = React.useState(0);
+    const skipOpacity = React.useRef(new Animated.Value(1)).current;
 
     const onPageSelected = (event: PagerViewOnPageSelectedEvent) => {
         const page = event.nativeEvent.position;
@@ -19,13 +32,13 @@ export default function OnboardingScreen() {
         setActivePage(page);
 
         if (activePage !== 3 && page === 3) {
-            Animated.timing(opacityAnimation, {
+            Animated.timing(skipOpacity, {
                 toValue: 0,
                 duration: 200,
                 useNativeDriver: true
             }).start();
         } else if (activePage === 3 && page !== 3) {
-            Animated.timing(opacityAnimation, {
+            Animated.timing(skipOpacity, {
                 toValue: 1,
                 duration: 200,
                 useNativeDriver: true
@@ -33,10 +46,14 @@ export default function OnboardingScreen() {
         }
     };
 
+    const onPageScroll = (event: PagerViewOnPageScrollEvent) => {
+        setPageState(event.nativeEvent.position + event.nativeEvent.offset);
+    };
+
     return (
         <View style={styles.container}>
             <StatusBar style="dark" />
-            <PagerView style={styles.container} initialPage={0} scrollEnabled={true} onPageSelected={onPageSelected}>
+            <PagerView style={styles.container} initialPage={0} scrollEnabled={true} onPageSelected={onPageSelected} onPageScroll={onPageScroll}>
                 <View style={{...styles.page, backgroundColor: '#BCF4F5'}} key="1">
                     <Text style={styles.title}>Welcome to Plum, your new grocery companion!</Text>
                     <Text style={styles.text}>Find the best produce prices right at your fingertips.</Text>
@@ -65,9 +82,9 @@ export default function OnboardingScreen() {
                     <DefaultView style={{flex: 1, alignItems: 'center'}}>
                         <Text style={styles.icon}>Icon</Text>
                     </DefaultView>
-                    <Animated.View style={[{flex: 1, alignItems: 'flex-end'}, {opacity: opacityAnimation}]}>
+                    <Animated.View style={[{flex: 1, alignItems: 'flex-end'}, {opacity: skipOpacity}]}>
                         <Pressable onPress={() => {
-                            if (activePage === 3) setOnboarding(true).then(() => {
+                            if (activePage !== 3) setOnboarding(true).then(() => {
                                 router.replace('/');
                             });
                         }}>
@@ -76,8 +93,11 @@ export default function OnboardingScreen() {
                     </Animated.View>
                 </DefaultView>
             </DefaultView>
-            <DefaultView style={{...styles.overlay, bottom: 30, justifyContent: 'center', backgroundColor: '#fff'}}>
-
+            <DefaultView style={{...styles.overlay, bottom: 30, flexDirection: 'row', justifyContent: 'center'}}>
+                <DefaultView style={{...styles.circle, backgroundColor: '#787878', opacity: getOpacityIndicator(pageState, 0)}} />
+                <DefaultView style={{...styles.circle, backgroundColor: '#787878', opacity: getOpacityIndicator(pageState, 1)}} />
+                <DefaultView style={{...styles.circle, backgroundColor: '#787878', opacity: getOpacityIndicator(pageState, 2)}} />
+                <DefaultView style={{...styles.circle, backgroundColor: '#787878', opacity: getOpacityIndicator(pageState, 3)}} />
             </DefaultView>
         </View>
     );
@@ -100,6 +120,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: '100%',
         paddingHorizontal: 15
+    },
+    circle: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        marginHorizontal: 2
     },
     icon: {
         color: '#000'
