@@ -34,7 +34,7 @@ export default function TabLayout() {
                 tabBarShowLabel: false
             }}>
             <Tabs.Screen
-                name="index"
+                name="home"
                 options={{
                     title: 'Home',
                     tabBarIcon: ({color}) => <TabBarIcon name="home-outline" color={color} />,
@@ -55,7 +55,7 @@ export default function TabLayout() {
                 }}
             />
             <Tabs.Screen
-                name="two"
+                name="settings"
                 options={{
                     title: 'Settings',
                     tabBarIcon: ({color}) => <TabBarIcon name="settings-outline" color={color} />,

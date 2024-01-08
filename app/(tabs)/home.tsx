@@ -7,7 +7,7 @@ import { hasOnboarded, setOnboarding } from '../../utilities/storage';
 
 import * as ScreenOrientation from 'expo-screen-orientation';
 
-export default function TabOneScreen() {
+export default function HomeScreen() {
     const [onboarded, setOnboarded] = React.useState(false);
 
     React.useEffect(() => {
@@ -27,7 +27,7 @@ export default function TabOneScreen() {
         <View style={styles.container}>
             <Text style={styles.title}>Tab One</Text>
             <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)"/>
-            <EditScreenInfo path="app/(tabs)/index.tsx"/>
+            <EditScreenInfo path="app/(tabs)/home.tsx"/>
             <Button title="Enable onboarding on next cycle" onPress={() => setOnboarding(false)}/>
             <Text>Has onboarded: {onboarded ? 'yes' : 'no'}</Text>
         </View>
