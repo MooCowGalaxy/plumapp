@@ -1,11 +1,11 @@
 import * as React from 'react';
-import {Button, View as DefaultView, Animated, StyleSheet, Pressable} from 'react-native';
+import { Button, View as DefaultView, Animated, StyleSheet, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import Constants from 'expo-constants';
 import { StatusBar } from 'expo-status-bar';
 
 import { Text, View } from '../components/Themed';
-import PagerView, {PagerViewOnPageSelectedEvent, PagerViewOnPageScrollEvent} from 'react-native-pager-view';
+import PagerView, { PagerViewOnPageSelectedEvent, PagerViewOnPageScrollEvent } from 'react-native-pager-view';
 
 import { setOnboarding } from '../utilities/storage';
 
