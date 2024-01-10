@@ -1,11 +1,34 @@
 import { View, TextInput, StyleSheet, TouchableOpacity, Keyboard } from 'react-native';
-import { useState } from 'react';
+import React, { useEffect } from 'react';
 import { Text } from './Themed';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Colors from '../constants/Colors';
 
-export default function SearchProductsBar() {
-    const [focused, setFocused] = useState(false);
+export default function SearchProductsBar(props: {
+    isSearching: boolean,
+    setIsSearching: React.Dispatch<React.SetStateAction<boolean>>,
+    searchText: string,
+    setSearchText: React.Dispatch<React.SetStateAction<string>>,
+    searchMode: string,
+    setSearchMode: React.Dispatch<React.SetStateAction<string>>
+}) {
+    const {
+        isSearching, setIsSearching,
+        searchText, setSearchText,
+        searchMode, setSearchMode
+    } = props;
+
+    useEffect(() => {
+        if (!isSearching) {
+            Keyboard.dismiss();
+        } else {
+            setSearchMode('name');
+        }
+    }, [isSearching]);
+
+    useEffect(() => {
+        setSearchText('');
+    }, [isSearching, searchMode]);
 
     return (
         <View style={styles.container}>
@@ -15,15 +38,17 @@ export default function SearchProductsBar() {
                     style={styles.searchInput}
                     placeholder="Search fruit, vegetables, etc."
                     selectionColor={Colors.accent.background}
-                    onFocus={() => setFocused(true)}
-                    onEndEditing={() => setFocused(false)}
+                    onFocus={() => setIsSearching(true)}
+                    value={searchText}
+                    onChangeText={setSearchText}
+                    /*onEndEditing={() => setIsSearching(false)}*/
+                    inputMode={searchMode === 'name' ? 'text' : 'numeric'}
                 />
             </View>
             <TouchableOpacity
-                style={[styles.cancelContainer, {display: focused ? 'flex' : 'none'}]}
+                style={[styles.cancelContainer, {display: isSearching ? 'flex' : 'none'}]}
                 onPress={() => {
-                    setFocused(false);
-                    Keyboard.dismiss();
+                    setIsSearching(false);
                 }}
             >
                 <Text style={styles.cancelButton}>cancel</Text>

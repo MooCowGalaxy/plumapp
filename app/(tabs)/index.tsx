@@ -1,22 +1,22 @@
-import * as React from 'react';
-import { Button, StyleSheet, SafeAreaView } from 'react-native';
+import { useEffect, useState } from 'react';
+import { StyleSheet, SafeAreaView } from 'react-native';
 import { usePathname } from 'expo-router';
 
 import { Text, View } from '../../components/Themed';
 import SearchProductsBar from '../../components/SearchProductsBar';
-import { hasOnboarded, setOnboarding } from '../../utilities/storage';
+import SearchTabs from '../../components/SearchTabs';
 
 import * as ScreenOrientation from 'expo-screen-orientation';
-import Colors from "../../constants/Colors";
+import Colors from '../../constants/Colors';
 
 export default function HomeScreen() {
-    const [onboarded, setOnboarded] = React.useState(false);
+    const [isSearching, setIsSearching] = useState(false);
+    const [searchText, setSearchText] = useState('');
+    const [searchMode, setSearchMode] = useState('name'); // name || plu
+
     const pathname = usePathname();
 
-    React.useEffect(() => {
-        hasOnboarded()
-            .then(res => setOnboarded(res));
-
+    useEffect(() => {
         ScreenOrientation.getOrientationLockAsync()
             .then(res => {
                 if (res !== ScreenOrientation.OrientationLock.PORTRAIT_UP) {
@@ -28,13 +28,23 @@ export default function HomeScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <SearchProductsBar />
-            <Text style={styles.title}>Tab One</Text>
-            <Text>{pathname}</Text>
-            <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)"/>
-            <Button title="Enable onboarding on next cycle" onPress={() => setOnboarding(false)}/>
-            <Text>Has onboarded: {onboarded ? 'yes' : 'no'}</Text>
-            <Text>Is dev environment: {__DEV__ ? 'yes' : 'no'}</Text>
+            <SearchProductsBar
+                isSearching={isSearching} setIsSearching={setIsSearching}
+                searchText={searchText} setSearchText={setSearchText}
+                searchMode={searchMode} setSearchMode={setSearchMode}
+            />
+            <View style={styles.contentContainer}>
+                <View style={[styles.content, {display: !isSearching ? 'flex' : 'none'}]}>
+                    <Text>Home page</Text>
+                    <Text>Path: {pathname}</Text>
+                </View>
+                <View style={[styles.content, {backgroundColor: '#eee', display: isSearching ? 'flex' : 'none'}]}>
+                    <SearchTabs
+                        searchText={searchText} setSearchText={setSearchText}
+                        searchMode={searchMode} setSearchMode={setSearchMode}
+                    />
+                </View>
+            </View>
         </SafeAreaView>
     );
 }
@@ -42,7 +52,17 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.light.background
+        width: '100%',
+        backgroundColor: Colors.light.background,
+    },
+    contentContainer: {
+        flex: 1,
+        position: 'relative',
+    },
+    content: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
     },
     title: {
         fontSize: 20,
