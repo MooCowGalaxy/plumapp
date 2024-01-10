@@ -1,9 +1,10 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import {DarkTheme, DefaultTheme, ThemeProvider} from '@react-navigation/native';
-import {useFonts} from 'expo-font';
-import {SplashScreen, Stack} from 'expo-router';
-import {useEffect} from 'react';
-import {useColorScheme} from 'react-native';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { useFonts } from 'expo-font';
+import { router, SplashScreen, Stack } from 'expo-router';
+import { useEffect } from 'react';
+import {  useColorScheme } from 'react-native';
+import { hasOnboarded } from '../utilities/storage';
 
 export {
     // Catch any errors thrown by the Layout component.
@@ -45,14 +46,24 @@ export default function RootLayout() {
 function RootLayoutNav() {
     const colorScheme = useColorScheme();
 
+    useEffect(() => {
+        (async () => {
+            const onboarded = await hasOnboarded();
+
+            if (!onboarded) {
+                router.replace('/onboarding');
+            }
+        })();
+    }, []);
+
     return (
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
             <Stack>
-                <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
+                <Stack.Screen name="(tabs)" options={{headerShown: false}} />
                 <Stack.Screen name="modal"
-                              options={{presentation: 'modal', headerBackVisible: false, gestureEnabled: false}}/>
+                              options={{presentation: 'modal', headerBackVisible: false}} />
                 <Stack.Screen name="onboarding"
-                              options={{headerShown: false, gestureEnabled: false, animation: 'fade'}}/>
+                              options={{headerShown: false, gestureEnabled: false, animation: 'slide_from_bottom'}} />
             </Stack>
         </ThemeProvider>
     );

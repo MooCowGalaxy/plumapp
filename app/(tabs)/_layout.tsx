@@ -1,10 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Link, Tabs, router } from 'expo-router';
+import { Link, Tabs } from 'expo-router';
 import { Pressable, useColorScheme } from 'react-native';
 import * as React from 'react';
 
 import Colors from '../../constants/Colors';
-import { hasOnboarded } from '../../utilities/storage';
 
 // https://icons.expo.fyi/
 function TabBarIcon(props: {
@@ -17,24 +16,15 @@ function TabBarIcon(props: {
 export default function TabLayout() {
     const colorScheme = useColorScheme();
 
-    React.useEffect(() => {
-        (async () => {
-            const onboarded = await hasOnboarded();
-
-            if (!onboarded) {
-                router.replace('/onboarding');
-            }
-        })();
-    }, []);
-
     return (
         <Tabs
             screenOptions={{
                 tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-                tabBarShowLabel: false
+                tabBarShowLabel: false,
+                headerShown: false,
             }}>
             <Tabs.Screen
-                name="home"
+                name="index"
                 options={{
                     title: 'Home',
                     tabBarIcon: ({color}) => <TabBarIcon name="home-outline" color={color} />,
@@ -58,7 +48,7 @@ export default function TabLayout() {
                 name="settings"
                 options={{
                     title: 'Settings',
-                    tabBarIcon: ({color}) => <TabBarIcon name="settings-outline" color={color} />,
+                    tabBarIcon: ({color}) => <TabBarIcon name="ellipsis-horizontal-outline" color={color} />,
                 }}
             />
         </Tabs>
