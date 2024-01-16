@@ -1,5 +1,5 @@
-import { View, TextInput, StyleSheet, TouchableOpacity, Keyboard } from 'react-native';
-import React, { useEffect } from 'react';
+import { View, TextInput, StyleSheet, TouchableOpacity, Keyboard, Pressable } from 'react-native';
+import React, { useRef, useEffect } from 'react';
 import { Text } from './Themed';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Colors from '../constants/Colors';
@@ -17,6 +17,7 @@ export default function SearchProductsBar(props: {
         searchText, setSearchText,
         searchMode, setSearchMode
     } = props;
+    const inputRef = useRef<any>();
 
     useEffect(() => {
         if (!isSearching) {
@@ -32,8 +33,10 @@ export default function SearchProductsBar(props: {
 
     return (
         <View style={styles.container}>
-            <View style={styles.searchBar}>
-                <Ionicons name="search" size={20} style={styles.searchIcon} />
+            <View style={[styles.searchBar, { borderColor: isSearching ? Colors.accent.tint : '#e2e2e2' }]}>
+                <Pressable style={{marginRight: 5}} onPress={() => inputRef.current?.focus()}>
+                    <Ionicons name="search" size={20} style={styles.searchIcon} />
+                </Pressable>
                 <TextInput
                     style={styles.searchInput}
                     placeholder="Search fruit, vegetables, etc."
@@ -41,9 +44,13 @@ export default function SearchProductsBar(props: {
                     onFocus={() => setIsSearching(true)}
                     value={searchText}
                     onChangeText={setSearchText}
+                    ref={inputRef}
                     /*onEndEditing={() => setIsSearching(false)}*/
                     inputMode={searchMode === 'name' ? 'text' : 'numeric'}
                 />
+                <Pressable style={{alignItems: 'center', justifyContent: 'center', display: searchText.length === 0 ? 'none' : 'flex'}} onPress={() => setSearchText('')}>
+                    <Ionicons name="close" size={20} style={styles.clearIcon} />
+                </Pressable>
             </View>
             <TouchableOpacity
                 style={[styles.cancelContainer, {display: isSearching ? 'flex' : 'none'}]}
@@ -60,27 +67,35 @@ export default function SearchProductsBar(props: {
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        padding: 20,
+        paddingHorizontal: 20,
+        paddingVertical: 10,
         flexDirection: 'row'
     },
     searchBar: {
         flex: 1,
         flexDirection: 'row',
+        alignItems: 'center',
         borderRadius: 10,
         borderStyle: 'solid',
-        borderColor: Colors.accent.tint,
         borderWidth: 1,
-        padding: 10
+        paddingHorizontal: 10
     },
     searchIcon: {
-        color: 'rgba(0, 0, 0, 0.35)',
-        marginRight: 5,
+        color: 'rgba(0, 0, 0, 0.35)'
+    },
+    clearIcon: {
+        color: 'rgba(0, 0, 0, 0.2)',
+        marginRight: -5,
+        paddingHorizontal: 5,
+        paddingVertical: 9
     },
     searchInput: {
         flex: 1,
+        paddingVertical: 12
     },
     cancelContainer: {
         paddingLeft: 10,
+        paddingVertical: 10,
         justifyContent: 'center'
     },
     cancelButton: {

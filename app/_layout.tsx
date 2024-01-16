@@ -65,7 +65,7 @@ function RootLayoutNav() {
                 <Stack.Screen name="onboarding"
                               options={{headerShown: false, gestureEnabled: false, animation: 'slide_from_bottom'}} />
                 <Stack.Screen name="product/[id]"
-                              options={{headerShown: false, presentation: 'fullScreenModal', animation: 'slide_from_right'}} />
+                              options={{headerShown: false, gestureEnabled: true, presentation: 'fullScreenModal', animation: 'slide_from_right'}} />
             </Stack>
         </ThemeProvider>
     );

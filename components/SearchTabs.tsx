@@ -42,11 +42,12 @@ const styles = StyleSheet.create({
     tabs: {
         flexDirection: 'row',
         backgroundColor: '#fff',
-        borderBottomLeftRadius: 18,
-        borderBottomRightRadius: 18,
+        //borderBottomLeftRadius: 18,
+        //borderBottomRightRadius: 18,
         justifyContent: 'center'
     },
     tab: {
+        flex: 1,
         padding: 10,
         justifyContent: 'center',
         alignItems: 'center',

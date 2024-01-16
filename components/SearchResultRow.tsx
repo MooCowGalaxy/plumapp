@@ -2,10 +2,6 @@ import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-const capitalize = (name: string): string => {
-    return name[0].toUpperCase() + name.slice(1);
-};
-
 export default function SearchResultRow({ name, priceId }: {
     name: string,
     priceId: number
@@ -14,7 +10,7 @@ export default function SearchResultRow({ name, priceId }: {
         <View style={styles.container}>
             <Link href={`/product/${priceId}`} asChild>
                 <TouchableOpacity style={styles.row}>
-                    <Text style={styles.text}>{capitalize(name)}</Text>
+                    <Text style={styles.text}>{name}</Text>
                     <Ionicons name='arrow-forward' size={18} />
                 </TouchableOpacity>
             </Link>
@@ -31,6 +27,8 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center'
     },
-    text: {},
+    text: {
+        textTransform: 'capitalize'
+    },
     arrow: {}
 });
