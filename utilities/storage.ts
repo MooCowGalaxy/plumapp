@@ -12,13 +12,30 @@ export async function setOnboarding(state = true) {
 }
 
 export async function addRecentSearch(priceId: number) {
+    let recent = await getRecentSearches();
 
+    recent = [priceId, ...recent.filter(x => x !== priceId)].slice(0, 5);
+    await SecureStore.setItemAsync('recent-searches', JSON.stringify(recent));
+
+    return recent;
 }
 
 export async function removeRecentSearch(priceId: number) {
+    let recent = await getRecentSearches();
 
+    recent = recent.filter(x => x !== priceId);
+    await SecureStore.setItemAsync('recent-searches', JSON.stringify(recent));
+
+    return recent;
 }
 
-export async function getRecentSearches() {
+export async function getRecentSearches(): Promise<number[]> {
+    const res = await SecureStore.getItemAsync('recent-searches');
 
+    if (!res) {
+        await SecureStore.setItemAsync('recent-searches', '[]');
+        return [];
+    }
+
+    return JSON.parse(res);
 }

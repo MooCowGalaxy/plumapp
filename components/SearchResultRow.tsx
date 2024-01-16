@@ -1,13 +1,14 @@
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import React from 'react';
 
 export default function SearchResultRow({ name, priceId }: {
     name: string,
     priceId: number
 }) {
     return (
-        <View style={styles.container}>
+        <View>
             <Link href={`/product/${priceId}`} asChild>
                 <TouchableOpacity style={styles.row}>
                     <Text style={styles.text}>{name}</Text>
@@ -19,16 +20,13 @@ export default function SearchResultRow({ name, priceId }: {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        padding: 15
-    },
     row: {
+        margin: 15,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center'
     },
     text: {
         textTransform: 'capitalize'
-    },
-    arrow: {}
+    }
 });

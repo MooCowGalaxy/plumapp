@@ -10,6 +10,7 @@ import fetchApi from '../../utilities/fetch';
 import { Dropdown } from 'react-native-element-dropdown';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { addRecentSearch } from '../../utilities/storage';
 
 const clamp = (min: number, value: number, max: number): number => {
     if (min > value) return min;
@@ -139,7 +140,9 @@ export default function ProductInfoScreen() {
 
             setIsFetchError(false);
             setUnits(res.data);
-        })
+
+            addRecentSearch(p[0].id).then();
+        });
     }, [localParams]);
 
     let isFormValid = true;
