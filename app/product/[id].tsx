@@ -1,14 +1,21 @@
-import { StyleSheet, ScrollView, SafeAreaView, Pressable, View, Image, TextInput, ActivityIndicator, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { StyleSheet, SafeAreaView, Pressable, View, Image, TextInput, ActivityIndicator, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { useState, useEffect } from 'react';
 import { Text } from '../../components/Themed';
 import { router, useLocalSearchParams } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import priceIds from '../../assets/data/priceIds.json';
 import Colors from '../../constants/Colors';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import fetchApi from '../../utilities/fetch';
 import { Dropdown } from 'react-native-element-dropdown';
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+
+const clamp = (min: number, value: number, max: number): number => {
+    if (min > value) return min;
+    else if (max < value) return max;
+    else return value;
+};
 
 const setFloat = (value: string, setter: any): void => {
     if (value.length === 0) {
@@ -26,7 +33,7 @@ const setFloat = (value: string, setter: any): void => {
 
     if (isNaN(parsed)) return;
 
-    if (value.split('').reduce((prev, cur) => prev += cur === '.' ? 1 : 0, 0) > 1) return;
+    if (value.split('').reduce((prev, cur) => prev + cur === '.' ? 1 : 0, 0) > 1) return;
     if (value.split('.').length > 1 && value.split('.')[1].length > 2) return;
 
     if (value.endsWith('.')) {
@@ -60,6 +67,59 @@ export default function ProductInfoScreen() {
         fetched: boolean
     }>({average: 0, date: 0, season: '', fetched: false});
 
+    const isImageHidden = useSharedValue(false);
+    const isGesture = useSharedValue(false);
+    const initialOffset = useSharedValue(0);
+    const transformOffset = useSharedValue(0);
+    const transformStyles = useAnimatedStyle(() => {
+        return {
+            transform: [
+                { translateY: transformOffset.value }
+            ]
+        };
+    });
+
+    const offsetMax = 240;
+    const pan = Gesture.Pan()
+        .runOnJS(true)
+        .onStart(() => {
+            isGesture.value = true;
+            initialOffset.value = transformOffset.value;
+        })
+        .onUpdate(e => {
+            transformOffset.value = clamp(-offsetMax, e.translationY + initialOffset.value, 0);
+            //transformOffset.value = (isImageHidden.value ? -offsetMax : 0) + clamp(isImageHidden.value ? 0 : -offsetMax, e.translationY, isImageHidden.value ? offsetMax : 0);
+        })
+        .onFinalize(() => {
+            isGesture.value = false;
+            transformImage(transformOffset.value < -offsetMax / 2);
+        });
+
+    const swipeLeft = Gesture.Pan()
+        .runOnJS(true)
+        .activeOffsetX(80)
+        .hitSlop({
+            left: 0,
+            width: 20
+        })
+        .onStart(() => {
+            router.back();
+        });
+
+    const composed = Gesture.Simultaneous(pan, swipeLeft);
+
+    const transformImage = (isHidden: boolean) => {
+        isImageHidden.value = isHidden;
+        transformOffset.value = withSpring(isHidden ? -offsetMax : 0, {
+            duration: 800,
+            dampingRatio: 1,
+            stiffness: 100,
+            overshootClamping: false,
+            restDisplacementThreshold: 0.01,
+            restSpeedThreshold: 2,
+        });
+    }
+
     useEffect(() => {
         let p = priceIds.filter(item => item.id.toString() === localParams.id);
 
@@ -86,7 +146,8 @@ export default function ProductInfoScreen() {
     if (selectedUnit === undefined || priceInput.length === 0) isFormValid = false;
 
     const onEvaluate = () => {
-        if (!isFormValid) return;
+        if (!isFormValid || isFetching) return;
+
         const body = {
             priceId: priceId.id,
             unit: selectedUnit,
@@ -118,131 +179,153 @@ export default function ProductInfoScreen() {
     // loading screen
     if (priceId === undefined || isLoading) {
         return (
-            <SafeAreaView style={loadingStyles.container}>
-                <View style={loadingStyles.header}>
-                    <Pressable onPress={() => router.back()}>
-                        <Ionicons name="arrow-back-outline" size={28} />
-                    </Pressable>
-                </View>
-                <View style={loadingStyles.contentContainer}>
-                    <ActivityIndicator />
-                </View>
-            </SafeAreaView>
+            <GestureDetector gesture={swipeLeft}>
+                <SafeAreaView style={loadingStyles.container}>
+                    <View style={loadingStyles.header}>
+                        <Pressable onPress={() => router.back()}>
+                            <Ionicons name="arrow-back-outline" size={28} />
+                        </Pressable>
+                    </View>
+                    <View style={loadingStyles.contentContainer}>
+                        <ActivityIndicator />
+                    </View>
+                </SafeAreaView>
+            </GestureDetector>
         );
     }
 
     // not found screen
     if (priceId === null) {
         return (
-            <SafeAreaView style={[notFoundStyles.container, styles.container]}>
-                <Text style={notFoundStyles.header}>Sorry!</Text>
-                <Text style={notFoundStyles.text}>We don't have pricing information on this product at this time.</Text>
-                <Pressable onPress={() => router.back()}>
-                    <View style={notFoundStyles.button}>
-                        <Text style={notFoundStyles.buttonText}>Go back</Text>
-                    </View>
-                </Pressable>
-            </SafeAreaView>
+            <GestureDetector gesture={swipeLeft}>
+                <SafeAreaView style={[notFoundStyles.container, styles.container]}>
+                    <Text style={notFoundStyles.header}>Sorry!</Text>
+                    <Text style={notFoundStyles.text}>We don't have pricing information on this product at this time.</Text>
+                    <Pressable onPress={() => router.back()}>
+                        <View style={notFoundStyles.button}>
+                            <Text style={notFoundStyles.buttonText}>Go back</Text>
+                        </View>
+                    </Pressable>
+                </SafeAreaView>
+            </GestureDetector>
         );
     }
 
     // error screen
     if (isFetchError) {
         return (
-            <SafeAreaView style={[notFoundStyles.container, styles.container]}>
-                <Text style={notFoundStyles.header}>Uh oh!</Text>
-                <Text style={notFoundStyles.text}>Something went wrong while loading pricing information for this product. Please try again later.</Text>
-                <Pressable onPress={() => router.back()}>
-                    <View style={notFoundStyles.button}>
-                        <Text style={notFoundStyles.buttonText}>Go back</Text>
-                    </View>
-                </Pressable>
-            </SafeAreaView>
+            <GestureDetector gesture={swipeLeft}>
+                <SafeAreaView style={[notFoundStyles.container, styles.container]}>
+                    <Text style={notFoundStyles.header}>Uh oh!</Text>
+                    <Text style={notFoundStyles.text}>Something went wrong while loading pricing information for this product. Please try again later.</Text>
+                    <Pressable onPress={() => router.back()}>
+                        <View style={notFoundStyles.button}>
+                            <Text style={notFoundStyles.buttonText}>Go back</Text>
+                        </View>
+                    </Pressable>
+                </SafeAreaView>
+            </GestureDetector>
         );
     }
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-            <ScrollView automaticallyAdjustKeyboardInsets={true} scrollEnabled={false} style={styles.container} contentContainerStyle={{ flexGrow: 1 }}>
-                <SafeAreaView style={{backgroundColor: '#eaeceb'}}>
-                    <View style={styles.headerButtons}>
-                        <Pressable onPress={() => router.back()}>
-                            <Ionicons name="arrow-back-outline" size={28} />
-                        </Pressable>
-                        <Pressable>
-                            <Ionicons name="help-circle-outline" size={28} />
-                        </Pressable>
-                    </View>
-                </SafeAreaView>
-                <View style={styles.productImageContainer}>
-                    {priceId.imageName ? <Image source={require(`../../assets/images/test.png`)} resizeMode="contain" style={{height: 240}} /> : <View style={{height: 240, justifyContent: 'center', alignItems: 'center'}}><Text>No image</Text></View>}
-                </View>
-                <View style={styles.priceContainer}>
-                    <Text style={styles.categoryText}>{priceId.category}</Text>
-                    <Text style={styles.productText}>{priceId.name}</Text>
-                    <View style={{display: result.fetched ? 'none' : 'flex'}}>
-                        <BouncyCheckbox
-                            size={24}
-                            style={{ marginBottom: 20 }}
-                            fillColor={Colors.accent.tint}
-                            unfillColor='rgba(0, 0, 0, 0)'
-                            text='Organic?'
-                            textStyle={{
-                                color: 'black',
-                                textDecorationLine: 'none',
-                                marginLeft: -8
-                            }}
-                            iconStyle={{ borderRadius: 5, borderColor: '#aaa' }}
-                            innerIconStyle={{ borderRadius: 5 }}
-                            onPress={setIsOrganic}
-                        />
-                        <View style={styles.inputContainer}>
-                            <Text style={styles.dollarSign}>$</Text>
-                            <TextInput
-                                style={styles.priceInput}
-                                placeholder="0.00"
-                                selectionColor={Colors.accent.background}
-                                value={priceInput}
-                                onChangeText={value => setFloat(value, setPriceInput)}
-                                inputMode="decimal"
-                            />
-                            <Text style={[styles.dollarSign, {marginRight: 5}]}>/</Text>
-                            <Dropdown
-                                style={styles.unitInput}
-                                selectedTextStyle={{fontSize: 20}}
-                                data={units.map(unit => ({label: unit.startsWith('per') ? unit.split(' ').slice(1).join(' ') : unit, value: unit}))}
-                                labelField="label"
-                                valueField="value"
-                                value={selectedUnit}
-                                onChange={item => setSelectedUnit(item.value)}
-                                placeholder="select unit"
-                                placeholderStyle={styles.unitSelectText}
-                            />
+            <GestureDetector gesture={swipeLeft}>
+                <View style={styles.container}>
+                    <SafeAreaView style={{backgroundColor: '#eaeceb'}}>
+                        <View style={styles.headerButtons}>
+                            <Pressable onPress={() => router.back()}>
+                                <Ionicons name="arrow-back-outline" size={28} />
+                            </Pressable>
+                            <Pressable>
+                                <Ionicons name="help-circle-outline" size={28} />
+                            </Pressable>
                         </View>
-                        <Pressable onPress={onEvaluate}>
-                            <View style={[notFoundStyles.button, isFormValid ? {} : styles.invalidFormButton]}>
-                                {!isFetching ?
-                                    <Text style={[notFoundStyles.buttonText, {textAlign: 'center'}, isFormValid ? {} : styles.invalidFormText]}>Evaluate</Text> :
-                                    <ActivityIndicator color='#fff' />
-                                }
-                            </View>
-                        </Pressable>
+                    </SafeAreaView>
+                    <View style={styles.productImageContainer}>
+                        {priceId.imageName ? <Image source={require(`../../assets/images/test.png`)} resizeMode="contain" style={{height: 240}} /> : <View style={{height: 240, justifyContent: 'center', alignItems: 'center'}}><Text>No image</Text></View>}
                     </View>
-                    <View style={{display: result.fetched ? 'flex' : 'none'}}>
-                        <Text style={{fontSize: 24}}>{isOrganic ? 'Organic' : ''}</Text>
-                        <View style={styles.resultPriceContainer}>
-                            <View style={{justifyContent: 'center'}}>
-                                <Text style={styles.priceLabel}>Average price</Text>
-                                <Text style={styles.priceLastUpdated}>Last updated: {new Date(result.date * 1000).toLocaleDateString()}</Text>
-                            </View>
-                            <View style={{justifyContent: 'center'}}>
-                                <Text style={styles.priceData}>${result.average} / {selectedUnit?.startsWith('per') ? selectedUnit.split(' ').slice(1).join(' ') : selectedUnit}</Text>
-                            </View>
+                    <GestureDetector gesture={composed}>
+                        <View style={styles.offsetContainer}>
+                            <Animated.View style={[styles.priceContainer, transformStyles]}>
+                                <Text style={styles.categoryText}>{priceId.category}</Text>
+                                <Text style={styles.productText}>{priceId.name}</Text>
+                                <View style={{display: result.fetched ? 'none' : 'flex'}}>
+                                    <BouncyCheckbox
+                                        size={24}
+                                        style={{ marginBottom: 20 }}
+                                        fillColor={Colors.accent.tint}
+                                        unfillColor='rgba(0, 0, 0, 0)'
+                                        text='Organic?'
+                                        textStyle={{
+                                            color: 'black',
+                                            textDecorationLine: 'none',
+                                            marginLeft: -8
+                                        }}
+                                        iconStyle={{ borderRadius: 5, borderColor: '#aaa' }}
+                                        innerIconStyle={{ borderRadius: 5 }}
+                                        onPress={setIsOrganic}
+                                    />
+                                    <View style={styles.inputContainer}>
+                                        <Text style={styles.dollarSign}>$</Text>
+                                        <TextInput
+                                            style={styles.priceInput}
+                                            placeholder="0.00"
+                                            selectionColor={Colors.accent.background}
+                                            value={priceInput}
+                                            onFocus={() => {
+                                                if (!isImageHidden.value) {
+                                                    transformImage(true);
+                                                }
+                                            }}
+                                            onEndEditing={() => {
+                                                if (isImageHidden.value) {
+                                                    transformImage(false);
+                                                }
+                                            }}
+                                            onChangeText={value => setFloat(value, setPriceInput)}
+                                            inputMode="decimal"
+                                        />
+                                        <Text style={[styles.dollarSign, {marginRight: 5}]}>/</Text>
+                                        <Dropdown
+                                            style={styles.unitInput}
+                                            selectedTextStyle={{fontSize: 20}}
+                                            data={units.map(unit => ({label: unit.startsWith('per') ? unit.split(' ').slice(1).join(' ') : unit, value: unit}))}
+                                            labelField="label"
+                                            valueField="value"
+                                            value={selectedUnit}
+                                            onChange={item => setSelectedUnit(item.value)}
+                                            placeholder="select unit"
+                                            placeholderStyle={styles.unitSelectText}
+                                        />
+                                    </View>
+                                    <Pressable onPress={onEvaluate}>
+                                        <View style={[notFoundStyles.button, isFormValid ? {} : styles.invalidFormButton]}>
+                                            {!isFetching ?
+                                                <Text style={[notFoundStyles.buttonText, {textAlign: 'center'}, isFormValid ? {} : styles.invalidFormText]}>Evaluate</Text> :
+                                                <ActivityIndicator color='#fff' />
+                                            }
+                                        </View>
+                                    </Pressable>
+                                </View>
+                                <View style={{display: result.fetched ? 'flex' : 'none'}}>
+                                    <Text style={{fontSize: 24}}>{isOrganic ? 'Organic' : ''}</Text>
+                                    <View style={styles.resultPriceContainer}>
+                                        <View style={{justifyContent: 'center'}}>
+                                            <Text style={styles.priceLabel}>Average price</Text>
+                                            <Text style={styles.priceLastUpdated}>Last updated: {new Date(result.date * 1000).toLocaleDateString()}</Text>
+                                        </View>
+                                        <View style={{justifyContent: 'center'}}>
+                                            <Text style={styles.priceData}>${result.average} / {selectedUnit?.startsWith('per') ? selectedUnit.split(' ').slice(1).join(' ') : selectedUnit}</Text>
+                                        </View>
+                                    </View>
+                                    <Text style={styles.seasonText}>🗓️ {result.season}</Text>
+                                </View>
+                            </Animated.View>
                         </View>
-                        <Text style={styles.seasonText}>🗓️ {result.season}</Text>
-                    </View>
+                    </GestureDetector>
                 </View>
-            </ScrollView>
+            </GestureDetector>
         </TouchableWithoutFeedback>
     );
 }
@@ -312,12 +395,18 @@ const styles = StyleSheet.create({
         backgroundColor: '#eaeceb',
         width: '100%'
     },
-    priceContainer: {
+    offsetContainer: {
         flex: 1,
+        position: 'relative'
+    },
+    priceContainer: {
+        position: 'absolute',
+        height: '200%',
+        width: '100%',
+        padding: 30,
         backgroundColor: '#fff',
         borderTopStartRadius: 30,
         borderTopEndRadius: 30,
-        padding: 30
     },
     categoryText: {
         fontWeight: 'bold',

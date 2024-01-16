@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
@@ -65,7 +66,7 @@ function RootLayoutNav() {
                 <Stack.Screen name="onboarding"
                               options={{headerShown: false, gestureEnabled: false, animation: 'slide_from_bottom'}} />
                 <Stack.Screen name="product/[id]"
-                              options={{headerShown: false, gestureEnabled: true, presentation: 'fullScreenModal', animation: 'slide_from_right'}} />
+                              options={{headerShown: false, presentation: 'fullScreenModal'}} />
             </Stack>
         </ThemeProvider>
     );
