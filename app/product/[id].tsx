@@ -56,7 +56,7 @@ export default function ProductInfoScreen() {
     const [isFetchError, setIsFetchError] = useState(false);
     const [units, setUnits] = useState<string[]>([]);
 
-    const [isOrganic, setIsOrganic] = useState(false);
+    const [isOrganic, setIsOrganic] = useState(localParams.organic === 'true');
     const [priceInput, setPriceInput] = useState('');
     const [selectedUnit, setSelectedUnit] = useState<string>();
 
@@ -124,7 +124,10 @@ export default function ProductInfoScreen() {
     useEffect(() => {
         let p = priceIds.filter(item => item.id.toString() === localParams.id);
 
-        if (p.length === 0) setPriceId(null);
+        if (p.length === 0) {
+            setPriceId(null);
+            return;
+        }
         else setPriceId(p[0]);
 
         fetchApi('/lookup/units', 'POST', {
@@ -267,6 +270,7 @@ export default function ProductInfoScreen() {
                                         }}
                                         iconStyle={{ borderRadius: 5, borderColor: '#aaa' }}
                                         innerIconStyle={{ borderRadius: 5 }}
+                                        isChecked={isOrganic}
                                         onPress={setIsOrganic}
                                     />
                                     <View style={styles.inputContainer}>

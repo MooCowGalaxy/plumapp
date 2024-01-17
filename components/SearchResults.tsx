@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import SearchResultRow from './SearchResultRow';
 import calculateSearchScore from '../utilities/calculateSearchScore';
 import priceIds from '../assets/data/priceIds.json';
+import pluCodes from '../assets/data/pluCodes.json';
 import { getRecentSearches } from '../utilities/storage';
 import RecentSearchRow from "./RecentSearchRow";
 
@@ -65,11 +66,27 @@ export default function SearchResults({ searchMode, searchText }: {
             <FlatList
                 data={results}
                 renderItem={({item}) =>
-                    <SearchResultRow name={item.name} priceId={item.id} setUpdateRecent={setUpdateRecent} />}
+                    <SearchResultRow name={item.name} link={`/product/${item.id}`} />}
                 keyExtractor={item => item.id.toString()}
             />
         );
     } else {
+        if (searchText.length === 0) {
+            return (
+                <View style={{flex: 1, paddingTop: 20}}>
+                    <Text style={{color: '#888', textAlign: 'center', marginBottom: 20}}>PLU codes are typically found on a sticker on the product.</Text>
+                </View>
+            );
+        }
 
+        let filter = pluCodes.filter(plu => plu.id.toString().startsWith(searchText.startsWith('9') ? searchText.slice(1) : searchText));
+
+        return (
+            <FlatList
+                data={filter}
+                renderItem={({item}) =>
+                    <SearchResultRow name={`${item.id}: ${searchText.startsWith('9') ? 'Organic ' : ''}${item.productName}`} link={`/product/${item.priceId}?organic=${searchText.startsWith('9')}`} />}
+                keyExtractor={item => item.id.toString()} />
+        );
     }
 }

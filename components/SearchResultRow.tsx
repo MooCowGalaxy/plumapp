@@ -3,15 +3,15 @@ import { Link } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React from 'react';
 
-export default function SearchResultRow({ name, priceId }: {
+export default function SearchResultRow({ name, link }: {
     name: string,
-    priceId: number
+    link: any
 }) {
     return (
         <View>
-            <Link href={`/product/${priceId}`} asChild>
+            <Link href={link} asChild>
                 <TouchableOpacity style={styles.row}>
-                    <Text style={styles.text}>{name}</Text>
+                    <Text style={styles.text} numberOfLines={1} ellipsizeMode="tail">{name}</Text>
                     <Ionicons name='arrow-forward' size={18} />
                 </TouchableOpacity>
             </Link>
