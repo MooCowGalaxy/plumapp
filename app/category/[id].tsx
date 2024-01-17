@@ -16,7 +16,7 @@ export default function CategoryListScreen() {
     },[]);
 
     return (
-        <View>
+        <View style={{flex: 1}}>
             <FlatList
                 data={priceIds.filter(x => x.category === local.id)}
                 renderItem={({item}) => <SearchResultRow name={item.name} link={`/product/${item.id}`} />}

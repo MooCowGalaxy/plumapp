@@ -85,7 +85,7 @@ export default function SearchResults({ searchMode, searchText }: {
             <FlatList
                 data={filter}
                 renderItem={({item}) =>
-                    <SearchResultRow name={`${item.id}: ${searchText.startsWith('9') ? 'Organic ' : ''}${item.productName}`} link={`/product/${item.priceId}?organic=${searchText.startsWith('9')}`} />}
+                    <SearchResultRow name={`${searchText.startsWith('9') ? '9' : ''}${item.id}: ${searchText.startsWith('9') ? 'Organic ' : ''}${item.productName}`} link={`/product/${item.priceId}?organic=${searchText.startsWith('9')}`} />}
                 keyExtractor={item => item.id.toString()} />
         );
     }

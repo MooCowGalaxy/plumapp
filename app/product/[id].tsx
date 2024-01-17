@@ -34,6 +34,8 @@ const setFloat = (value: string, setter: any): void => {
 
     if (isNaN(parsed)) return;
 
+    if (value.split('').filter(x => x === '.').length > 1) return;
+
     if (value.split('').reduce((prev, cur) => prev + cur === '.' ? 1 : 0, 0) > 1) return;
     if (value.split('.').length > 1 && value.split('.')[1].length > 2) return;
 
@@ -42,10 +44,12 @@ const setFloat = (value: string, setter: any): void => {
         return;
     }
 
-    setter(value.split('').reduce((prev, cur) => {
+    /*setter(value.split('').reduce((prev, cur) => {
         if (prev.length === 0 && cur === '0') return prev;
         else return prev + cur;
-    }, ''));
+    }, ''));*/
+    setter(value);
+    //setter(parsed.toString());
 }
 
 export default function ProductInfoScreen() {
