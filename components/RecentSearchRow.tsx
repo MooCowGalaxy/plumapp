@@ -23,7 +23,7 @@ export default function RecentSearchRow({ priceId, setUpdateRecent }: {
                     <View style={styles.row}>
                         <Text style={styles.text}>N/A</Text>
                         <TouchableOpacity onPress={deleteRecent}>
-                            <Ionicons name='close' size={18} />
+                            <Ionicons name='close' size={18} color='#999' />
                         </TouchableOpacity>
                     </View>
                 </Link>
@@ -41,7 +41,7 @@ export default function RecentSearchRow({ priceId, setUpdateRecent }: {
                 </TouchableOpacity>
             </Link>
             <TouchableOpacity onPress={deleteRecent} style={{paddingVertical: 15}}>
-                <Ionicons name='close' size={18} />
+                <Ionicons name='close' size={18} color='#999' />
             </TouchableOpacity>
         </View>
     );

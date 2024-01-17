@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, SafeAreaView } from 'react-native';
-import { usePathname } from 'expo-router';
+import { Link, usePathname } from 'expo-router';
 
 import { Text, View } from '../../components/Themed';
 import SearchProductsBar from '../../components/SearchProductsBar';
@@ -37,6 +37,8 @@ export default function HomeScreen() {
                 <View style={[styles.content, {display: !isSearching ? 'flex' : 'none'}]}>
                     <Text>Home page</Text>
                     <Text>Path: {pathname}</Text>
+                    <Link href='/category/fruit' style={{padding: 10}}>🍎 Fruits</Link>
+                    <Link href='/category/vegetable' style={{padding: 10}}>🥬 Vegetables</Link>
                 </View>
                 <View style={[styles.content, {backgroundColor: '#eee', display: isSearching ? 'flex' : 'none'}]}>
                     <SearchTabs

@@ -164,6 +164,8 @@ export default function ProductInfoScreen() {
 
         setIsFetching(true);
 
+        Keyboard.dismiss();
+
         fetchApi('/lookup/price', 'POST', body)
             .then(res => {
                 setIsFetching(false);
@@ -235,8 +237,8 @@ export default function ProductInfoScreen() {
     }
 
     return (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-            <GestureDetector gesture={swipeLeft}>
+        <GestureDetector gesture={swipeLeft}>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
                 <View style={styles.container}>
                     <SafeAreaView style={{backgroundColor: '#eaeceb'}}>
                         <View style={styles.headerButtons}>
@@ -254,7 +256,9 @@ export default function ProductInfoScreen() {
                     <GestureDetector gesture={composed}>
                         <View style={styles.offsetContainer}>
                             <Animated.View style={[styles.priceContainer, transformStyles]}>
-                                <Text style={styles.categoryText}>{priceId.category}</Text>
+                                <Pressable onPress={() => router.replace(`/category/${priceId.category.endsWith('s') ? priceId.category.slice(0, -1) : priceId.category}`)}>
+                                    <Text style={styles.categoryText}>{priceId.category}</Text>
+                                </Pressable>
                                 <Text style={styles.productText}>{priceId.name}</Text>
                                 <View style={{display: result.fetched ? 'none' : 'flex'}}>
                                     <BouncyCheckbox
@@ -310,7 +314,7 @@ export default function ProductInfoScreen() {
                                         <View style={[notFoundStyles.button, isFormValid ? {} : styles.invalidFormButton]}>
                                             {!isFetching ?
                                                 <Text style={[notFoundStyles.buttonText, {textAlign: 'center'}, isFormValid ? {} : styles.invalidFormText]}>Evaluate</Text> :
-                                                <ActivityIndicator color='#fff' />
+                                                <ActivityIndicator color='#fff' style={{paddingVertical: 1}} />
                                             }
                                         </View>
                                     </Pressable>
@@ -332,8 +336,8 @@ export default function ProductInfoScreen() {
                         </View>
                     </GestureDetector>
                 </View>
-            </GestureDetector>
-        </TouchableWithoutFeedback>
+            </TouchableWithoutFeedback>
+        </GestureDetector>
     );
 }
 

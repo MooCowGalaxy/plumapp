@@ -1,17 +1,27 @@
-import { StyleSheet } from 'react-native';
-import { Text, View } from '../../components/Themed';
-import { useLocalSearchParams } from 'expo-router';
+import { FlatList } from 'react-native';
+import { View } from '../../components/Themed';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
+import { useEffect } from 'react';
+import priceIds from '../../assets/data/priceIds.json';
+import SearchResultRow from '../../components/SearchResultRow';
 
 export default function CategoryListScreen() {
     const local = useLocalSearchParams();
+    const navigation = useNavigation();
+
+    useEffect(() => {
+        navigation.setOptions({
+            title: local.id[0].toUpperCase() + `${local.id.slice(1)}s`
+        });
+    },[]);
 
     return (
         <View>
-            <Text>Product info for {local.id}</Text>
+            <FlatList
+                data={priceIds.filter(x => x.category === local.id)}
+                renderItem={({item}) => <SearchResultRow name={item.name} link={`/product/${item.id}`} />}
+                keyExtractor={item => item.id.toString()}
+            />
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-
-});

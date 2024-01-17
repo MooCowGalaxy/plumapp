@@ -36,7 +36,7 @@ export default function SearchResults({ searchMode, searchText }: {
         if (searchText.length < 3) {
             return (
                 <View style={{flex: 1, paddingTop: 20}}>
-                    <Text style={{color: '#888', textAlign: 'center', marginBottom: 20}}>Type 3 or more characters to start searching...</Text>
+                    <Text style={{color: '#888', textAlign: 'center', marginBottom: 40}}>Type 3 or more characters to start searching...</Text>
                     <View style={{display: recent.length > 0 ? 'flex' : 'none'}}>
                         <Text style={{color: 'black', fontWeight: 'bold', marginLeft: 15, fontSize: 20}}>Recent Searches</Text>
                         <View style={{height: 1, marginTop: 1, marginHorizontal: 15, backgroundColor: '#d2d2d2'}} />
@@ -74,7 +74,7 @@ export default function SearchResults({ searchMode, searchText }: {
         if (searchText.length === 0) {
             return (
                 <View style={{flex: 1, paddingTop: 20}}>
-                    <Text style={{color: '#888', textAlign: 'center', marginBottom: 20}}>PLU codes are typically found on a sticker on the product.</Text>
+                    <Text style={{color: '#888', textAlign: 'center', marginBottom: 20, marginHorizontal: 20}}>PLU codes are a 4 or 5 digit number that is typically found on a sticker attached to the product.</Text>
                 </View>
             );
         }
