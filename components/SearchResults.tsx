@@ -79,7 +79,7 @@ export default function SearchResults({ searchMode, searchText }: {
             );
         }
 
-        let filter = pluCodes.filter(plu => plu.id.toString().startsWith(searchText.startsWith('9') ? searchText.slice(1) : searchText));
+        let filter = pluCodes.filter(plu => plu.id.toString().startsWith(searchText.startsWith('9') ? searchText.slice(1) : searchText)).slice(0, 15);
 
         return (
             <FlatList

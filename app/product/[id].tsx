@@ -31,6 +31,14 @@ const setFloat = (value: string, setter: any): void => {
         return;
     }
 
+    let zeroCount = 0;
+    for (const char of value) {
+        if (char !== '0') break;
+        zeroCount++;
+    }
+
+    if (zeroCount > 1) return;
+
     let parsed = parseFloat(value);
 
     if (isNaN(parsed)) return;
@@ -133,14 +141,19 @@ export default function ProductInfoScreen() {
 
         if (p.length === 0) {
             setPriceId(null);
+            setIsLoading(false);
+            console.log(0);
             return;
         }
         else setPriceId(p[0]);
+
+        console.log(1);
 
         fetchApi('/lookup/units', 'POST', {
             priceId: p[0].id
         }).then(res => {
             setIsLoading(false);
+            console.log(2);
 
             if (!res.fetched || !res.ok) {
                 console.error(res.fetched ? res.data : res.error);
@@ -177,7 +190,7 @@ export default function ProductInfoScreen() {
             .then(res => {
                 setIsFetching(false);
 
-                if (!res.fetched || !res.ok) {
+                if (!res.fetched || !res.ok || res.data === undefined) {
                     console.error(res.fetched ? res.data : res.error);
                     return;
                 }
@@ -188,7 +201,7 @@ export default function ProductInfoScreen() {
                     season: res.data.season,
                     fetched: true
                 });
-            })
+            });
     };
 
     // loading screen
@@ -213,14 +226,21 @@ export default function ProductInfoScreen() {
     if (priceId === null) {
         return (
             <GestureDetector gesture={swipeLeft}>
-                <SafeAreaView style={[notFoundStyles.container, styles.container]}>
-                    <Text style={notFoundStyles.header}>Sorry!</Text>
-                    <Text style={notFoundStyles.text}>We don't have pricing information on this product at this time.</Text>
-                    <Pressable onPress={() => router.back()}>
-                        <View style={notFoundStyles.button}>
-                            <Text style={notFoundStyles.buttonText}>Go back</Text>
-                        </View>
-                    </Pressable>
+                <SafeAreaView style={loadingStyles.container}>
+                    <View style={loadingStyles.header}>
+                        <Pressable onPress={() => router.back()}>
+                            <Ionicons name="arrow-back-outline" size={28} />
+                        </Pressable>
+                    </View>
+                    <View style={loadingStyles.contentContainer}>
+                        <Text style={notFoundStyles.header}>Sorry!</Text>
+                        <Text style={notFoundStyles.text}>We don't have pricing information on this product at this time.</Text>
+                        <Pressable onPress={() => router.back()}>
+                            <View style={notFoundStyles.button}>
+                                <Text style={notFoundStyles.buttonText}>Go back</Text>
+                            </View>
+                        </Pressable>
+                    </View>
                 </SafeAreaView>
             </GestureDetector>
         );
