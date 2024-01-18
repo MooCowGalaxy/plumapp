@@ -1,4 +1,5 @@
-import { StyleSheet, SafeAreaView, Pressable, View, Image, TextInput, ActivityIndicator, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { StyleSheet, SafeAreaView, Pressable, View, TextInput, ActivityIndicator, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { Image } from 'expo-image';
 import { useState, useEffect } from 'react';
 import { Text } from '../../components/Themed';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -52,6 +53,8 @@ const setFloat = (value: string, setter: any): void => {
     //setter(parsed.toString());
 }
 
+const IMAGE_DIM = 280;
+
 export default function ProductInfoScreen() {
     const localParams = useLocalSearchParams();
     const [priceId, setPriceId] = useState<any>(undefined);
@@ -84,7 +87,7 @@ export default function ProductInfoScreen() {
         };
     });
 
-    const offsetMax = 240;
+    const offsetMax = IMAGE_DIM;
     const pan = Gesture.Pan()
         .runOnJS(true)
         .onStart(() => {
@@ -240,22 +243,44 @@ export default function ProductInfoScreen() {
         );
     }
 
+    const evaluationText = parseFloat(priceInput) < 0.9 * result.average ?
+        <Text style={styles.seasonText}>😁🥹🤓😚😏 Score!!! This is a great price for your area. Stock up! </Text> :
+        parseFloat(priceInput) > 1.1 * result.average ?
+            <Text style={styles.seasonText}>🤔 There could be better prices for this product in your area.</Text> :
+            <Text style={styles.seasonText}>🙂 This is a fair price for your area.</Text>;
+
+    let percentColor = '#000';
+    let percentDifference = '0';
+    if (result.fetched) {
+        if (result.average < parseFloat(priceInput)) {
+            percentColor = '#f22';
+            percentDifference = `+${Math.round(100 * (parseFloat(priceInput) / result.average - 1))}`;
+        } else {
+            percentColor = '#0d0';
+            percentDifference = `-${Math.round(100 * (1 - parseFloat(priceInput) / result.average))}`;
+        }
+    }
+
     return (
         <GestureDetector gesture={swipeLeft}>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
                 <View style={styles.container}>
                     <SafeAreaView style={{backgroundColor: '#eaeceb'}}>
                         <View style={styles.headerButtons}>
-                            <Pressable onPress={() => router.back()}>
+                            <Pressable style={styles.headerButton} onPress={() => router.back()}>
                                 <Ionicons name="arrow-back-outline" size={28} />
                             </Pressable>
-                            <Pressable>
+                            <Pressable style={styles.headerButton}>
                                 <Ionicons name="help-circle-outline" size={28} />
                             </Pressable>
                         </View>
                     </SafeAreaView>
                     <View style={styles.productImageContainer}>
-                        {priceId.imageName ? <Image source={require(`../../assets/images/test.png`)} resizeMode="contain" style={{height: 240}} /> : <View style={{height: 240, justifyContent: 'center', alignItems: 'center'}}><Text>No image</Text></View>}
+                        {priceId.imageName ?
+                            <Image source={`https://static.c4n.net/${priceId.imageName}`} contentFit="cover" cachePolicy="disk" style={{height: IMAGE_DIM, width: IMAGE_DIM}} /> :
+                            <View style={{height: IMAGE_DIM, justifyContent: 'center', alignItems: 'center'}}>
+                                <Text>No image</Text>
+                            </View>}
                     </View>
                     <GestureDetector gesture={composed}>
                         <View style={styles.offsetContainer}>
@@ -334,7 +359,12 @@ export default function ProductInfoScreen() {
                                             <Text style={styles.priceData}>${result.average} / {selectedUnit?.startsWith('per') ? selectedUnit.split(' ').slice(1).join(' ') : selectedUnit}</Text>
                                         </View>
                                     </View>
-                                    <Text style={styles.seasonText}>🗓️ {result.season}</Text>
+                                    <View style={styles.resultPriceContainer}>
+                                        <Text style={styles.priceLabel}>Your price</Text>
+                                        <Text style={styles.priceData}>${parseFloat(priceInput)} / {selectedUnit?.startsWith('per') ? selectedUnit.split(' ').slice(1).join(' ') : selectedUnit} <Text style={{color: percentColor}}>({percentDifference}%)</Text></Text>
+                                    </View>
+                                    {/*<Text style={[styles.seasonText, {marginBottom: 40}]}>🗓️ {result.season}</Text>*/}
+                                    {evaluationText}
                                 </View>
                             </Animated.View>
                         </View>
@@ -396,14 +426,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#eaeceb'
     },
     headerButtons: {
-        paddingHorizontal: 20,
-        paddingVertical: 10,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center'
     },
     headerButton: {
-
+        paddingHorizontal: 20,
+        paddingVertical: 10
     },
     productImageContainer: {
         alignItems: 'center',
@@ -481,5 +510,11 @@ const styles = StyleSheet.create({
     },
     seasonText: {
         fontSize: 20
+    },
+    comparisonText: {
+        fontSize: 24
+    },
+    percentText: {
+        fontWeight: 'bold'
     }
 });

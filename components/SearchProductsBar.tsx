@@ -39,7 +39,7 @@ export default function SearchProductsBar(props: {
                 </Pressable>
                 <TextInput
                     style={styles.searchInput}
-                    placeholder="Search fruit, vegetables, etc."
+                    placeholder="Search fruits, vegetables, etc."
                     selectionColor={Colors.accent.background}
                     onFocus={() => setIsSearching(true)}
                     value={searchText}
