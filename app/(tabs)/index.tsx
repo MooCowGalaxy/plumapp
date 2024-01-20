@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, SafeAreaView } from 'react-native';
-import { Link, usePathname } from 'expo-router';
+import { StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 
 import { Text, View } from '../../components/Themed';
+import TrendingItem from '../../components/TrendingItem';
 import SearchProductsBar from '../../components/SearchProductsBar';
 import SearchTabs from '../../components/SearchTabs';
+import fetchApi from '../../utilities/fetch';
 
 import * as ScreenOrientation from 'expo-screen-orientation';
 import Colors from '../../constants/Colors';
@@ -14,7 +15,8 @@ export default function HomeScreen() {
     const [searchText, setSearchText] = useState('');
     const [searchMode, setSearchMode] = useState('name'); // name || plu
 
-    const pathname = usePathname();
+    const [isLoading, setLoading] = useState(true);
+    const [trending, setTrending] = useState([0, 0, 0, 0, 0, 0]);
 
     useEffect(() => {
         ScreenOrientation.getOrientationLockAsync()
@@ -23,6 +25,23 @@ export default function HomeScreen() {
                     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP)
                         .then();
                 }
+            });
+
+        fetchApi('/data/featured', 'GET')
+            .then(res => {
+                setLoading(false);
+
+                if (!res.fetched || !res.ok) {
+                    console.error(res.fetched ? res.data : res.error);
+                    setTrending([]);
+                    return;
+                }
+
+                setTrending(res.data);
+            })
+            .catch(() => {
+                setTrending([]);
+                setLoading(false);
             });
     }, []);
 
@@ -35,14 +54,51 @@ export default function HomeScreen() {
             />
             <View style={styles.contentContainer}>
                 <View style={[styles.content, {display: !isSearching ? 'flex' : 'none'}]}>
-                    <Text>Home page</Text>
-                    <Text>Path: {pathname}</Text>
-                    <Link href='/category/fruit' style={{padding: 10}}>🍎 Fruits</Link>
-                    <Link href='/category/vegetable' style={{padding: 10}}>🥬 Vegetables</Link>
+                    <ScrollView contentContainerStyle={{padding: 20}}>
+                        <Text style={styles.sectionText}>Categories</Text>
+                        <View style={styles.categories}>
+                            <View style={styles.category}>
+                                <View style={styles.categoryIcon} />
+                                <Text style={styles.categoryText}>Fruits</Text>
+                            </View>
+                            <View style={styles.category}>
+                                <View style={styles.categoryIcon} />
+                                <Text style={styles.categoryText}>Vegetables</Text>
+                            </View>
+                            <View style={styles.category}>
+                                <View style={styles.categoryIcon} />
+                                <Text style={styles.categoryText}>Herbs</Text>
+                            </View>
+                            <View style={styles.category}>
+                                <View style={styles.categoryIcon} />
+                                <Text style={styles.categoryText}>Dairy</Text>
+                            </View>
+                        </View>
+                        <Text style={styles.sectionText}>Trending Items</Text>
+                        {trending.length === 0 ?
+                            <View>
+                                <Text>There are no trending items at this moment.</Text>
+                            </View> :
+                            <View style={styles.trendingItems}>
+                                <View style={styles.trendingRow}>
+                                    <TrendingItem priceId={trending[0]} isLoading={isLoading} />
+                                    <TrendingItem priceId={trending[1]} isLoading={isLoading} />
+                                </View>
+                                <View style={styles.trendingRow}>
+                                    <TrendingItem priceId={trending[2]} isLoading={isLoading} />
+                                    <TrendingItem priceId={trending[3]} isLoading={isLoading} />
+                                </View>
+                                <View style={styles.trendingRow}>
+                                    <TrendingItem priceId={trending[4]} isLoading={isLoading} />
+                                    <TrendingItem priceId={trending[5]} isLoading={isLoading} />
+                                </View>
+                            </View>
+                        }
+                    </ScrollView>
                 </View>
                 <View style={[styles.content, {backgroundColor: '#eee', display: isSearching ? 'flex' : 'none'}]}>
                     <SearchTabs
-                        searchText={searchText} setSearchText={setSearchText}
+                        searchText={searchText}
                         searchMode={searchMode} setSearchMode={setSearchMode}
                     />
                 </View>
@@ -65,6 +121,40 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: '100%',
         height: '100%',
+    },
+    sectionText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10
+    },
+    categories: {
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 30
+    },
+    category: {
+        alignItems: 'center'
+    },
+    categoryIcon: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#ccc',
+        marginBottom: 10
+    },
+    categoryText: {
+        fontSize: 12,
+        textAlign: 'center'
+    },
+    trendingItems: {
+        width: '100%',
+        alignItems: 'center'
+    },
+    trendingRow: {
+        width: '100%',
+        marginBottom: 5,
+        flexDirection: 'row'
     },
     title: {
         fontSize: 20,

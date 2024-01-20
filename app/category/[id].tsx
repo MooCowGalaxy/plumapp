@@ -19,7 +19,7 @@ export default function CategoryListScreen() {
         <View style={{flex: 1}}>
             <FlatList
                 data={priceIds.filter(x => x.category === local.id)}
-                renderItem={({item}) => <SearchResultRow name={item.name} link={`/product/${item.id}`} />}
+                renderItem={({item}) => <SearchResultRow name={item.name} link={`/product/${item.id}`} imageUrl={item.imageName ? `https://static.c4n.net/icons/${item.imageName}` : ''} />}
                 keyExtractor={item => item.id.toString()}
             />
         </View>

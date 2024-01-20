@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Text } from '../../components/Themed';
 import { router, useLocalSearchParams } from 'expo-router';
 import priceIds from '../../assets/data/priceIds.json';
+import thumbhashes from '../../assets/data/thumbhashes.json';
 import Colors from '../../constants/Colors';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
@@ -62,6 +63,7 @@ const setFloat = (value: string, setter: any): void => {
 }
 
 const IMAGE_DIM = 280;
+const NO_IMAGE_DIM = 200;
 
 export default function ProductInfoScreen() {
     const localParams = useLocalSearchParams();
@@ -95,7 +97,7 @@ export default function ProductInfoScreen() {
         };
     });
 
-    const offsetMax = IMAGE_DIM;
+    const offsetMax = priceId?.imageName === null ? NO_IMAGE_DIM : IMAGE_DIM;
     const pan = Gesture.Pan()
         .runOnJS(true)
         .onStart(() => {
@@ -142,18 +144,14 @@ export default function ProductInfoScreen() {
         if (p.length === 0) {
             setPriceId(null);
             setIsLoading(false);
-            console.log(0);
             return;
         }
         else setPriceId(p[0]);
-
-        console.log(1);
 
         fetchApi('/lookup/units', 'POST', {
             priceId: p[0].id
         }).then(res => {
             setIsLoading(false);
-            console.log(2);
 
             if (!res.fetched || !res.ok) {
                 console.error(res.fetched ? res.data : res.error);
@@ -297,8 +295,9 @@ export default function ProductInfoScreen() {
                     </SafeAreaView>
                     <View style={styles.productImageContainer}>
                         {priceId.imageName ?
-                            <Image source={`https://static.c4n.net/${priceId.imageName}`} contentFit="cover" cachePolicy="disk" style={{height: IMAGE_DIM, width: IMAGE_DIM}} /> :
-                            <View style={{height: IMAGE_DIM, justifyContent: 'center', alignItems: 'center'}}>
+                            /* @ts-ignore */
+                            <Image source={`https://static.c4n.net/${priceId.imageName}`} placeholder={{thumbhash: thumbhashes[priceId.imageName]}} placeholderContentFit="none" contentFit="cover" cachePolicy="disk" style={{height: IMAGE_DIM, width: IMAGE_DIM}} transition={400} /> :
+                            <View style={{height: NO_IMAGE_DIM, justifyContent: 'center', alignItems: 'center'}}>
                                 <Text>No image</Text>
                             </View>}
                     </View>
