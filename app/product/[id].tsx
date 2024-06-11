@@ -12,7 +12,7 @@ import fetchApi from '../../utilities/fetch';
 import { Dropdown } from 'react-native-element-dropdown';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
-import { addRecentSearch } from '../../utilities/storage';
+import { addRecentSearch, getRegion } from '../../utilities/storage';
 
 const clamp = (min: number, value: number, max: number): number => {
     if (min > value) return min;
@@ -65,15 +65,25 @@ const setFloat = (value: string, setter: any): void => {
 const IMAGE_DIM = 280;
 const NO_IMAGE_DIM = 200;
 
+type Units = {
+    unit: string;
+    organic: boolean;
+};
+
+const onlyUnique = (value: any, index: any, array: any): any => {
+    return array.indexOf(value) === index;
+}
+
 export default function ProductInfoScreen() {
     const localParams = useLocalSearchParams();
     const [priceId, setPriceId] = useState<any>(undefined);
 
     const [isLoading, setIsLoading] = useState(true);
     const [isFetchError, setIsFetchError] = useState(false);
-    const [units, setUnits] = useState<string[]>([]);
+    const [units, setUnits] = useState<Units[]>([]);
 
     const [isOrganic, setIsOrganic] = useState(localParams.organic === 'true');
+    const [organicIsDisabled, setOrganicIsDisabled] = useState(false);
     const [priceInput, setPriceInput] = useState('');
     const [selectedUnit, setSelectedUnit] = useState<string>();
 
@@ -124,7 +134,16 @@ export default function ProductInfoScreen() {
             router.back();
         });
 
-    const composed = Gesture.Simultaneous(pan, swipeLeft);
+    const composed = Gesture.Simultaneous(pan, Gesture.Pan()
+        .runOnJS(true)
+        .activeOffsetX(80)
+        .hitSlop({
+            left: 0,
+            width: 20
+        })
+        .onStart(() => {
+            router.back();
+        }));
 
     const transformImage = (isHidden: boolean) => {
         isImageHidden.value = isHidden;
@@ -139,21 +158,25 @@ export default function ProductInfoScreen() {
     }
 
     useEffect(() => {
-        let p = priceIds.filter(item => item.id.toString() === localParams.id);
+        (async () => {
+            let p = priceIds.filter(item => item.id.toString() === localParams.id);
 
-        if (p.length === 0) {
-            setPriceId(null);
-            setIsLoading(false);
-            return;
-        }
-        else setPriceId(p[0]);
+            if (p.length === 0) {
+                setPriceId(null);
+                setIsLoading(false);
+                return;
+            }
+            else setPriceId(p[0]);
 
-        fetchApi('/lookup/units', 'POST', {
-            priceId: p[0].id
-        }).then(res => {
+            const res = await fetchApi('/lookup/units', 'POST', {
+                priceId: p[0].id,
+                region: await getRegion()
+            })
+
             setIsLoading(false);
 
             if (!res.fetched || !res.ok) {
+                console.error('Failed to fetch product data');
                 console.error(res.fetched ? res.data : res.error);
                 setIsFetchError(true);
                 return;
@@ -162,20 +185,31 @@ export default function ProductInfoScreen() {
             setIsFetchError(false);
             setUnits(res.data);
 
-            addRecentSearch(p[0].id).then();
-        });
-    }, [localParams]);
+            await addRecentSearch(p[0].id);
+        })();
+    }, []);
 
     let isFormValid = true;
     if (selectedUnit === undefined || priceInput.length === 0) isFormValid = false;
 
-    const onEvaluate = () => {
+    const updateSelectedUnit = (unit: string) => {
+        setSelectedUnit(unit);
+
+        if (units.filter(u => u.unit === unit).length !== 2) {
+            setOrganicIsDisabled(true);
+            setIsOrganic(units.filter(u => u.unit === unit)[0].organic);
+        } else {
+            setOrganicIsDisabled(false);
+        }
+    };
+
+    const onEvaluate = async () => {
         if (!isFormValid || isFetching) return;
 
         const body = {
             priceId: priceId.id,
             unit: selectedUnit,
-            region: 'southwest', // TODO: add support for changing regions
+            region: await getRegion(), // TODO: add support for changing regions
             organic: isOrganic,
             price: parseFloat(priceInput)
         };
@@ -184,28 +218,39 @@ export default function ProductInfoScreen() {
 
         Keyboard.dismiss();
 
-        fetchApi('/lookup/price', 'POST', body)
-            .then(res => {
-                setIsFetching(false);
+        const res = await fetchApi('/lookup/price', 'POST', body);
 
-                if (!res.fetched || !res.ok || res.data === undefined) {
-                    console.error(res.fetched ? res.data : res.error);
-                    return;
-                }
+        setIsFetching(false);
 
-                setResult({
-                    average: res.data.price,
-                    date: res.data.date,
-                    season: res.data.season,
-                    fetched: true
-                });
-            });
+        if (!res.fetched || !res.ok || res.data === undefined) {
+            console.error('Failed to fetch price data');
+            console.error(res.fetched ? res.data : res.error, res);
+            return;
+        }
+
+        setResult({
+            average: res.data.price,
+            date: res.data.date,
+            season: res.data.season,
+            fetched: true
+        });
     };
 
     // loading screen
     if (priceId === undefined || isLoading) {
+        const gesture = Gesture.Pan()
+            .runOnJS(true)
+            .activeOffsetX(80)
+            .hitSlop({
+                left: 0,
+                width: 20
+            })
+            .onStart(() => {
+                router.back();
+            });
+
         return (
-            <GestureDetector gesture={swipeLeft}>
+            <GestureDetector gesture={gesture}>
                 <SafeAreaView style={loadingStyles.container}>
                     <View style={loadingStyles.header}>
                         <Pressable onPress={() => router.back()}>
@@ -222,8 +267,19 @@ export default function ProductInfoScreen() {
 
     // not found screen
     if (priceId === null) {
+        const gesture = Gesture.Pan()
+            .runOnJS(true)
+            .activeOffsetX(80)
+            .hitSlop({
+                left: 0,
+                width: 20
+            })
+            .onStart(() => {
+                router.back();
+            });
+
         return (
-            <GestureDetector gesture={swipeLeft}>
+            <GestureDetector gesture={gesture}>
                 <SafeAreaView style={loadingStyles.container}>
                     <View style={loadingStyles.header}>
                         <Pressable onPress={() => router.back()}>
@@ -246,8 +302,19 @@ export default function ProductInfoScreen() {
 
     // error screen
     if (isFetchError) {
+        const gesture = Gesture.Pan()
+            .runOnJS(true)
+            .activeOffsetX(80)
+            .hitSlop({
+                left: 0,
+                width: 20
+            })
+            .onStart(() => {
+                router.back();
+            });
+
         return (
-            <GestureDetector gesture={swipeLeft}>
+            <GestureDetector gesture={gesture}>
                 <SafeAreaView style={[notFoundStyles.container, styles.container]}>
                     <Text style={notFoundStyles.header}>Uh oh!</Text>
                     <Text style={notFoundStyles.text}>Something went wrong while loading pricing information for this product. Please try again later.</Text>
@@ -312,17 +379,18 @@ export default function ProductInfoScreen() {
                                     <BouncyCheckbox
                                         size={24}
                                         style={{ marginBottom: 20 }}
-                                        fillColor={Colors.accent.tint}
+                                        fillColor={!organicIsDisabled ? Colors.accent.tint : 'gray'}
                                         unfillColor='rgba(0, 0, 0, 0)'
                                         text='Organic?'
                                         textStyle={{
-                                            color: 'black',
+                                            color: !organicIsDisabled ? 'black' : 'gray',
                                             textDecorationLine: 'none',
                                             marginLeft: -8
                                         }}
                                         iconStyle={{ borderRadius: 5, borderColor: '#aaa' }}
                                         innerIconStyle={{ borderRadius: 5 }}
                                         isChecked={isOrganic}
+                                        disabled={organicIsDisabled}
                                         onPress={setIsOrganic}
                                     />
                                     <View style={styles.inputContainer}>
@@ -349,11 +417,11 @@ export default function ProductInfoScreen() {
                                         <Dropdown
                                             style={styles.unitInput}
                                             selectedTextStyle={{fontSize: 20}}
-                                            data={units.map(unit => ({label: unit.startsWith('per') ? unit.split(' ').slice(1).join(' ') : unit, value: unit}))}
+                                            data={units.map(unit => unit.unit).filter(onlyUnique).map(unit => ({label: unit.startsWith('per') ? unit.split(' ').slice(1).join(' ') : unit, value: unit}))}
                                             labelField="label"
                                             valueField="value"
                                             value={selectedUnit}
-                                            onChange={item => setSelectedUnit(item.value)}
+                                            onChange={item => updateSelectedUnit(item.value)}
                                             placeholder="select unit"
                                             placeholderStyle={styles.unitSelectText}
                                         />
@@ -368,13 +436,13 @@ export default function ProductInfoScreen() {
                                     </Pressable>
                                 </View>
                                 <View style={{display: result.fetched ? 'flex' : 'none'}}>
-                                    <Text style={{fontSize: 24}}>{isOrganic ? 'Organic' : ''}</Text>
+                                    <Text style={{fontSize: 18, marginTop: -6, marginBottom: 12}}>{isOrganic ? 'Organic' : ''}</Text>
                                     <View style={styles.resultPriceContainer}>
-                                        <View style={{justifyContent: 'center'}}>
+                                        <View>
                                             <Text style={styles.priceLabel}>Average price</Text>
                                             <Text style={styles.priceLastUpdated}>Last updated: {new Date(result.date * 1000).toLocaleDateString()}</Text>
                                         </View>
-                                        <View style={{justifyContent: 'center'}}>
+                                        <View>
                                             <Text style={styles.priceData}>${result.average} / {selectedUnit?.startsWith('per') ? selectedUnit.split(' ').slice(1).join(' ') : selectedUnit}</Text>
                                         </View>
                                     </View>

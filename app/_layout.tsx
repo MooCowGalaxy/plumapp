@@ -6,6 +6,8 @@ import { router, SplashScreen, Stack } from 'expo-router';
 import { useEffect } from 'react';
 import {  useColorScheme } from 'react-native';
 import { hasOnboarded } from '../utilities/storage';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { RootSiblingParent } from 'react-native-root-siblings';
 
 export {
     // Catch any errors thrown by the Layout component.
@@ -59,17 +61,33 @@ function RootLayoutNav() {
 
     return (
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <Stack>
-                <Stack.Screen name="(tabs)" options={{headerShown: false}} />
-                <Stack.Screen name="modal"
-                              options={{presentation: 'modal', headerBackVisible: false}} />
-                <Stack.Screen name="onboarding"
-                              options={{headerShown: false, gestureEnabled: false, animation: 'slide_from_bottom'}} />
-                <Stack.Screen name="product/[id]"
-                              options={{headerShown: false}} />
-                <Stack.Screen name="category/[id]"
-                              options={{headerShown: true}} />
-            </Stack>
+            <GestureHandlerRootView>
+                <RootSiblingParent>
+                    <Stack>
+                        <Stack.Screen name="(tabs)" options={{headerShown: false, headerTitle: 'Back'}} />
+                        <Stack.Screen name="modal"
+                                      options={{presentation: 'modal', headerBackVisible: false}} />
+                        <Stack.Screen name="onboarding"
+                                      options={{headerShown: false, gestureEnabled: false, animation: 'slide_from_bottom'}} />
+                        <Stack.Screen name="product/[id]"
+                                      options={{headerShown: false}} />
+                        <Stack.Screen name="category/[id]"
+                                      options={{headerShown: true}} />
+                        <Stack.Screen name="more/legal/index"
+                                      options={{headerShown: true, headerTitle: 'Legal'}} />
+                        <Stack.Screen name="more/legal/privacy"
+                                      options={{headerShown: true, headerTitle: 'Privacy Policy'}} />
+                        <Stack.Screen name="more/legal/tos"
+                                      options={{headerShown: true, headerTitle: 'Terms and Conditions'}} />
+                        <Stack.Screen name="more/help"
+                                      options={{headerShown: true, headerTitle: 'Help/FAQs'}} />
+                        <Stack.Screen name="more/feedback"
+                                      options={{headerShown: true, headerTitle: 'Give Feedback'}} />
+                        <Stack.Screen name="more/feedbackSent"
+                                      options={{headerShown: true, headerTitle: 'Thanks!'}} />
+                    </Stack>
+                </RootSiblingParent>
+            </GestureHandlerRootView>
         </ThemeProvider>
     );
 }

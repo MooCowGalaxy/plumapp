@@ -10,7 +10,7 @@ export default function CategoryListScreen() {
     const navigation = useNavigation();
 
     useEffect(() => {
-        navigation.setOptions({
+        if (local.id) navigation.setOptions({
             title: local.id[0].toUpperCase() + `${local.id.slice(1)}s`
         });
     },[]);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { StyleSheet, SafeAreaView, ScrollView, Pressable } from 'react-native';
 
 import { Text, View } from '../../components/Themed';
 import TrendingItem from '../../components/TrendingItem';
@@ -9,6 +9,7 @@ import fetchApi from '../../utilities/fetch';
 
 import * as ScreenOrientation from 'expo-screen-orientation';
 import Colors from '../../constants/Colors';
+import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
     const [isSearching, setIsSearching] = useState(false);
@@ -17,6 +18,8 @@ export default function HomeScreen() {
 
     const [isLoading, setLoading] = useState(true);
     const [trending, setTrending] = useState([0, 0, 0, 0, 0, 0]);
+
+    const router = useRouter();
 
     useEffect(() => {
         ScreenOrientation.getOrientationLockAsync()
@@ -57,22 +60,30 @@ export default function HomeScreen() {
                     <ScrollView contentContainerStyle={{padding: 20}}>
                         <Text style={styles.sectionText}>Categories</Text>
                         <View style={styles.categories}>
-                            <View style={styles.category}>
-                                <View style={styles.categoryIcon} />
-                                <Text style={styles.categoryText}>Fruits</Text>
-                            </View>
-                            <View style={styles.category}>
-                                <View style={styles.categoryIcon} />
-                                <Text style={styles.categoryText}>Vegetables</Text>
-                            </View>
-                            <View style={styles.category}>
-                                <View style={styles.categoryIcon} />
-                                <Text style={styles.categoryText}>Herbs</Text>
-                            </View>
-                            <View style={styles.category}>
-                                <View style={styles.categoryIcon} />
-                                <Text style={styles.categoryText}>Dairy</Text>
-                            </View>
+                            <Pressable onPress={() => router.push(`/category/fruit`)}>
+                                <View style={styles.category}>
+                                    <View style={styles.categoryIcon} />
+                                    <Text style={styles.categoryText}>Fruits</Text>
+                                </View>
+                            </Pressable>
+                            <Pressable onPress={() => router.push(`/category/vegetable`)}>
+                                <View style={styles.category}>
+                                    <View style={styles.categoryIcon} />
+                                    <Text style={styles.categoryText}>Vegetables</Text>
+                                </View>
+                            </Pressable>
+                            <Pressable onPress={() => router.push(`/category/herb`)}>
+                                <View style={styles.category}>
+                                    <View style={styles.categoryIcon} />
+                                    <Text style={styles.categoryText}>Herbs</Text>
+                                </View>
+                            </Pressable>
+                            <Pressable onPress={() => router.push(`/category/dairy`)}>
+                                <View style={styles.category}>
+                                    <View style={styles.categoryIcon} />
+                                    <Text style={styles.categoryText}>Dairy</Text>
+                                </View>
+                            </Pressable>
                         </View>
                         <Text style={styles.sectionText}>Trending Items</Text>
                         {trending.length === 0 ?

@@ -39,3 +39,18 @@ export async function getRecentSearches(): Promise<number[]> {
 
     return JSON.parse(res);
 }
+
+export async function getRegion(): Promise<string> {
+    const res = await SecureStore.getItemAsync('region');
+
+    if (!res) {
+        await SecureStore.setItemAsync('region', 'national');
+        return 'national';
+    }
+
+    return res;
+}
+
+export async function setRegion(region: string): Promise<void> {
+    await SecureStore.setItemAsync('region', region);
+}
