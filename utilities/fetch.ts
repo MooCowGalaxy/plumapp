@@ -1,3 +1,5 @@
+import { BASE_URL } from '../constants/vars';
+
 export default async function fetchApi(url: string, method: 'GET' | 'POST', data: object = {}) {
     let options: any = {
         method,
@@ -11,7 +13,7 @@ export default async function fetchApi(url: string, method: 'GET' | 'POST', data
 
     let res;
     try {
-        res = await fetch(url.startsWith('http') ? url : process.env.EXPO_PUBLIC_BASE_URL + url, options);
+        res = await fetch(url.startsWith('http') ? url : BASE_URL + url, options);
     } catch (e) {
         return {
             fetched: false,

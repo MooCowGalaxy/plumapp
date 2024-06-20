@@ -5,13 +5,14 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text, View } from '../../components/Themed';
 import Colors from '../../constants/Colors';
 import { useRouter } from 'expo-router';
+import { SUPPORT_EMAIL } from '../../constants/vars';
 
 export default function SettingsScreen() {
     const router = useRouter();
 
     const onContactPress = () => {
-        if (process.env.EXPO_PUBLIC_SUPPORT_EMAIL) MailComposer.composeAsync({
-            recipients: [process.env.EXPO_PUBLIC_SUPPORT_EMAIL]
+        MailComposer.composeAsync({
+            recipients: [SUPPORT_EMAIL]
         }).then().catch();
     };
 

@@ -4,6 +4,7 @@ import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useEffect } from 'react';
 import priceIds from '../../assets/data/priceIds.json';
 import SearchResultRow from '../../components/SearchResultRow';
+import { STATIC_URL } from '../../constants/vars';
 
 export default function CategoryListScreen() {
     const local = useLocalSearchParams();
@@ -19,7 +20,7 @@ export default function CategoryListScreen() {
         <View style={{flex: 1}}>
             <FlatList
                 data={priceIds.filter(x => x.category === local.id)}
-                renderItem={({item}) => <SearchResultRow name={item.name} link={`/product/${item.id}`} imageUrl={item.imageName ? `https://static.c4n.net/icons/${item.imageName}` : ''} />}
+                renderItem={({item}) => <SearchResultRow name={item.name} link={`/product/${item.id}`} imageUrl={item.imageName ? `${STATIC_URL}/icons/${item.imageName}` : ''} />}
                 keyExtractor={item => item.id.toString()}
             />
         </View>

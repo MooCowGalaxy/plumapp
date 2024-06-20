@@ -3,11 +3,12 @@ import { List } from 'react-native-paper';
 import Colors from '../../constants/Colors';
 import React from 'react';
 import * as MailComposer from 'expo-mail-composer';
+import { SUPPORT_EMAIL } from '../../constants/vars';
 
 export default function Help() {
     const onContactPress = () => {
-        if (process.env.EXPO_PUBLIC_SUPPORT_EMAIL) MailComposer.composeAsync({
-            recipients: [process.env.EXPO_PUBLIC_SUPPORT_EMAIL]
+        MailComposer.composeAsync({
+            recipients: [SUPPORT_EMAIL]
         }).then().catch();
     };
 

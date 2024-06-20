@@ -2,6 +2,7 @@ import { StyleSheet, ScrollView, View, Text, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import Colors from '../../constants/Colors';
 import { useRouter } from 'expo-router';
+import { STATIC_URL } from '../../constants/vars';
 
 export default function FeedbackSent() {
     const router = useRouter();
@@ -9,7 +10,7 @@ export default function FeedbackSent() {
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <View style={styles.image}>
-                <Image source="https://static.c4n.net/bananas.png" placeholder={{thumbhash: '6juCBQA1aLhXt3OK+0ByQgIjKWaGeHCahg=='}} placeholderContentFit="none" contentFit="cover" cachePolicy="disk" style={{height: 200, width: 200}} transition={400} />
+                <Image source={`${STATIC_URL}/bananas.png`} placeholder={{thumbhash: '6juCBQA1aLhXt3OK+0ByQgIjKWaGeHCahg=='}} placeholderContentFit="none" contentFit="cover" cachePolicy="disk" style={{height: 200, width: 200}} transition={400} />
             </View>
             <Text style={styles.header}>Thank you for your feedback!</Text>
             <Text style={styles.text}>We really appreciate your time in helping us improve the experience for everyone.</Text>
